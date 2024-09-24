@@ -26,81 +26,89 @@ var (
 	psos    legacy.LegacyPSO
 )
 
-func displayBlock() {
+func displayBlock(jsonOutput bool) {
 	fmt.Printf("\n%s\n", "== Block ==")
 	err := block.ReadFromFile(filepath.Join(cTestDataFolder, cBlockFilename))
 	if err != nil {
 		fmt.Printf("error %v", err)
 		return
 	}
-
-	fmt.Println("Number:           ", block.Number)
-	fmt.Printf("HASH:              '%s'\n", block.HASH)
-	fmt.Println("Time Start:       ", time.Unix(block.TimeStart, 0))
-	fmt.Println("Time End:         ", time.Unix(block.TimeEnd, 0))
-	fmt.Println("Time Total:       ", block.TimeTotal, "seconds")
-	fmt.Println("Time Last 20:     ", block.TimeLast20, "seconds")
-	fmt.Println("Transaction Count:", block.TransactionsCount)
-	fmt.Println("Difficulty:       ", block.Difficulty)
-	fmt.Printf("Target Hash:      '%s'\n", block.TargetHash.GetString())
-	fmt.Printf("Solution:         '%s'\n", block.Solution.GetString())
-	fmt.Printf("Last Block Hash:  '%s'\n", block.LastBlockHash.GetString())
-	fmt.Printf("Miner:            '%s'\n", block.Miner.GetString())
-	fmt.Println("Fee:             ", utils.ToNoso(block.Fee))
-	fmt.Println("Reward:          ", utils.ToNoso(block.Reward))
-
-	if block.TransactionsCount > 0 {
-		fmt.Printf("Transactions(%d):\n", block.TransactionsCount)
-		var n int32
-		for n = 0; n < block.TransactionsCount; n++ {
-			fmt.Printf("  OrderID: '%s'\n", block.Transactions[n].OrderID.GetString())
-			fmt.Printf("      TransferID:     '%s'\n", block.Transactions[n].TransferID.GetString())
-			fmt.Println("      Block:         ", block.Transactions[n].Block)
-			fmt.Println("      Order lines:   ", block.Transactions[n].OrderLinesCount)
-			fmt.Printf("      Order type:     '%s'\n", block.Transactions[n].OrderType.GetString())
-			fmt.Println("      Timestamp:     ", time.Unix(block.Transactions[n].TimeStamp, 0))
-			fmt.Printf("      Reference:      '%s'\n", block.Transactions[n].Reference.GetString())
-			fmt.Println("      Transfer Index:", block.Transactions[n].TransferIndex)
-			fmt.Printf("      Sender:         '%s'\n", block.Transactions[n].Sender.GetString())
-			fmt.Printf("      Address:        '%s'\n", block.Transactions[n].Address.GetString())
-			fmt.Printf("      Receiver:       '%s'\n", block.Transactions[n].Receiver.GetString())
-			fmt.Println("      Fee:           ", utils.ToNoso(block.Transactions[n].AmountFee))
-			fmt.Println("      Value:         ", utils.ToNoso(block.Transactions[n].AmountTransfer))
-			fmt.Printf("      Signature:      '%s'\n", block.Transactions[n].Signature.GetString())
-		}
+	if jsonOutput {
+		fmt.Println(block.AsJSON())
 	} else {
-		fmt.Println("No transactions")
-	}
 
-	if block.ProofOfStakeRewardCount > 0 {
-		fmt.Printf("PoS rewards(%d):\n", block.ProofOfStakeRewardCount)
-		fmt.Println("  Amount:", utils.ToNoso(block.ProofOfStakeRewardAmount))
-		var n int32
-		for n = 0; n < block.ProofOfStakeRewardCount; n++ {
-			fmt.Printf("  Address: '%s'\n", block.ProofOfStakeRewardAddresses[n].GetString())
-		}
-	} else {
-		fmt.Println("No PoS rewards")
-	}
+		fmt.Println("Number:           ", block.Number)
+		fmt.Printf("HASH:              '%s'\n", block.HASH)
+		fmt.Println("Time Start:       ", time.Unix(block.TimeStart, 0))
+		fmt.Println("Time End:         ", time.Unix(block.TimeEnd, 0))
+		fmt.Println("Time Total:       ", block.TimeTotal, "seconds")
+		fmt.Println("Time Last 20:     ", block.TimeLast20, "seconds")
+		fmt.Println("Transaction Count:", block.TransactionsCount)
+		fmt.Println("Difficulty:       ", block.Difficulty)
+		fmt.Printf("Target Hash:      '%s'\n", block.TargetHash.GetString())
+		fmt.Printf("Solution:         '%s'\n", block.Solution.GetString())
+		fmt.Printf("Last Block Hash:  '%s'\n", block.LastBlockHash.GetString())
+		fmt.Printf("Miner:            '%s'\n", block.Miner.GetString())
+		fmt.Println("Fee:             ", utils.ToNoso(block.Fee))
+		fmt.Println("Reward:          ", utils.ToNoso(block.Reward))
 
-	if block.MasterNodeRewardCount > 0 {
-		fmt.Printf("MN rewards(%d):\n", block.MasterNodeRewardCount)
-		fmt.Println("  Amount:", utils.ToNoso(block.MasterNodeRewardAmount))
-		var n int32
-		for n = 0; n < block.MasterNodeRewardCount; n++ {
-			fmt.Printf("  Address: '%s'\n", block.MasterNodeRewardAddresses[n].GetString())
+		if block.TransactionsCount > 0 {
+			fmt.Printf("Transactions(%d):\n", block.TransactionsCount)
+			var n int32
+			for n = 0; n < block.TransactionsCount; n++ {
+				fmt.Printf("  OrderID: '%s'\n", block.Transactions[n].OrderID.GetString())
+				fmt.Printf("      TransferID:     '%s'\n", block.Transactions[n].TransferID.GetString())
+				fmt.Println("      Block:         ", block.Transactions[n].Block)
+				fmt.Println("      Order lines:   ", block.Transactions[n].OrderLinesCount)
+				fmt.Printf("      Order type:     '%s'\n", block.Transactions[n].OrderType.GetString())
+				fmt.Println("      Timestamp:     ", time.Unix(block.Transactions[n].TimeStamp, 0))
+				fmt.Printf("      Reference:      '%s'\n", block.Transactions[n].Reference.GetString())
+				fmt.Println("      Transfer Index:", block.Transactions[n].TransferIndex)
+				fmt.Printf("      Sender:         '%s'\n", block.Transactions[n].Sender.GetString())
+				fmt.Printf("      Address:        '%s'\n", block.Transactions[n].Address.GetString())
+				fmt.Printf("      Receiver:       '%s'\n", block.Transactions[n].Receiver.GetString())
+				fmt.Println("      Fee:           ", utils.ToNoso(block.Transactions[n].AmountFee))
+				fmt.Println("      Value:         ", utils.ToNoso(block.Transactions[n].AmountTransfer))
+				fmt.Printf("      Signature:      '%s'\n", block.Transactions[n].Signature.GetString())
+			}
+		} else {
+			fmt.Println("No transactions")
 		}
-	} else {
-		fmt.Println("No MN rewards")
+
+		if block.ProofOfStakeRewardCount > 0 {
+			fmt.Printf("PoS rewards(%d):\n", block.ProofOfStakeRewardCount)
+			fmt.Println("  Amount:", utils.ToNoso(block.ProofOfStakeRewardAmount))
+			var n int32
+			for n = 0; n < block.ProofOfStakeRewardCount; n++ {
+				fmt.Printf("  Address: '%s'\n", block.ProofOfStakeRewardAddresses[n].GetString())
+			}
+		} else {
+			fmt.Println("No PoS rewards")
+		}
+
+		if block.MasterNodeRewardCount > 0 {
+			fmt.Printf("MN rewards(%d):\n", block.MasterNodeRewardCount)
+			fmt.Println("  Amount:", utils.ToNoso(block.MasterNodeRewardAmount))
+			var n int32
+			for n = 0; n < block.MasterNodeRewardCount; n++ {
+				fmt.Printf("  Address: '%s'\n", block.MasterNodeRewardAddresses[n].GetString())
+			}
+		} else {
+			fmt.Println("No MN rewards")
+		}
 	}
 }
 
-func displayWallet() {
+func displayWallet(jsonOutput bool) {
 	// Wallet
 	fmt.Printf("\n%s\n", "== Wallet ==")
 	err := wallet.ReadFromFile(filepath.Join(cTestDataFolder, cWalletFilename))
 	if err != nil {
 		fmt.Println("error reading wallet:", err)
+		return
+	}
+	if jsonOutput {
+		fmt.Println(wallet.AsJSON())
 	} else {
 		for i, a := range wallet.Accounts {
 			fmt.Println("Position:", i)
@@ -116,12 +124,16 @@ func displayWallet() {
 	}
 }
 
-func displaySummary() {
+func displaySummary(jsonOutput bool) {
 	// Summary
 	fmt.Printf("\n%s\n", "== Summary ==")
 	err := summary.ReadFromFile(filepath.Join(cTestDataFolder, cSummaryFilename))
 	if err != nil {
 		fmt.Println("error reading summary:", err)
+		return
+	}
+	if jsonOutput {
+		fmt.Println(summary.AsJSON())
 	} else {
 		for i, a := range summary.Accounts {
 			fmt.Println("Position:", i)
@@ -132,14 +144,19 @@ func displaySummary() {
 			fmt.Println("    Last Operation:", utils.ToNoso(a.LastOperation))
 		}
 	}
+
 }
 
-func displayGVT() {
+func displayGVT(jsonOutput bool) {
 	// GVT
 	fmt.Printf("\n%s\n", "== GVT ==")
 	err := gvts.ReadFromFile(filepath.Join(cTestDataFolder, cGVTFilename))
 	if err != nil {
 		fmt.Println("error reading GVT:", err)
+		return
+	}
+	if jsonOutput {
+		fmt.Println(gvts.AsJSON())
 	} else {
 		for i, e := range gvts.Entries {
 			fmt.Println("Position:", i)
@@ -151,12 +168,16 @@ func displayGVT() {
 	}
 }
 
-func displayPSO() {
+func displayPSO(jsonOutput bool) {
 	// PSO
 	fmt.Printf("\n%s\n", "== PSO ==")
 	err := psos.ReadFromFile(filepath.Join(cTestDataFolder, cPSOFilename))
 	if err != nil {
 		fmt.Println("error reading PSO:", err)
+		return
+	}
+	if jsonOutput {
+		fmt.Println(psos.AsJSON())
 	} else {
 		fmt.Println("Block:", psos.Block)
 		fmt.Printf("  MN Locks(%d):\n", psos.MNLockCount)
@@ -167,18 +188,18 @@ func displayPSO() {
 		}
 		fmt.Printf("  PSO Count(%d):\n", psos.PSOCount)
 	}
+
 }
 
 func main() {
 
-	displayPSO()
+	displayPSO(true)
 
-	displayBlock()
+	displayGVT(true)
 
-	displayWallet()
+	displaySummary(true)
 
-	displaySummary()
+	displayWallet(true)
 
-	displayGVT()
-
+	displayBlock(true)
 }

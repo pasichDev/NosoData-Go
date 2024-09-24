@@ -2,6 +2,7 @@ package legacy
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,8 +12,8 @@ import (
 )
 
 type LegacySummary struct {
-	AccountsCount int64
-	Accounts      []LegacySummaryAccount
+	AccountsCount int64                  `json:"accounts-count"`
+	Accounts      []LegacySummaryAccount `json:"accounts"`
 }
 
 func (s *LegacySummary) ReadFromFile(f string) error {
@@ -43,12 +44,21 @@ func (s *LegacySummary) ReadFromFile(f string) error {
 	return nil
 }
 
+func (s *LegacySummary) AsJSON() string {
+	jsonData, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		fmt.Printf("error %v", err)
+		return ""
+	}
+	return string(jsonData)
+}
+
 type LegacySummaryAccount struct {
-	Hash          PascalShortString // Capacity 40
-	Custom        PascalShortString // Capacity 40
-	Balance       int64
-	Score         int64
-	LastOperation int64
+	Hash          PascalShortString `json:"hash"`   // Capacity 40
+	Custom        PascalShortString `json:"custom"` // Capacity 40
+	Balance       int64             `json:"balance"`
+	Score         int64             `json:"score"`
+	LastOperation int64             `json:"last-operation"`
 }
 
 func (a *LegacySummaryAccount) ReadFromStream(f *os.File) error {

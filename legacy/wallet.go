@@ -2,6 +2,7 @@ package legacy
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,8 +12,8 @@ import (
 )
 
 type LegacyWallet struct {
-	AccountsCount int64
-	Accounts      []LegacyWalletAccount
+	AccountsCount int64                 `json:"accounts-count"`
+	Accounts      []LegacyWalletAccount `json:"accounts"`
 }
 
 func (w *LegacyWallet) ReadFromFile(f string) error {
@@ -44,14 +45,14 @@ func (w *LegacyWallet) ReadFromFile(f string) error {
 }
 
 type LegacyWalletAccount struct {
-	Hash          PascalShortString // Capacity 40
-	Custom        PascalShortString // Capacity 40
-	PrivateKey    PascalShortString // Capacity 255
-	PublicKey     PascalShortString // Capacity 255
-	Balance       int64
-	Pending       int64
-	Score         int64
-	LastOperation int64
+	Hash          PascalShortString `json:"hash"`        // Capacity 40
+	Custom        PascalShortString `json:"custom"`      // Capacity 40
+	PrivateKey    PascalShortString `json:"private-key"` // Capacity 255
+	PublicKey     PascalShortString `json:"public-key"`  // Capacity 255
+	Balance       int64             `json:"balance"`
+	Pending       int64             `json:"pending"`
+	Score         int64             `json:"score"`
+	LastOperation int64             `json:"last-operation"`
 }
 
 func (a *LegacyWalletAccount) ReadFromStream(f *os.File) error {
@@ -113,4 +114,13 @@ func (a *LegacyWalletAccount) ReadFromStream(f *os.File) error {
 	}
 
 	return nil
+}
+
+func (w *LegacyWallet) AsJSON() string {
+	jsonData, err := json.MarshalIndent(w, "", "  ")
+	if err != nil {
+		fmt.Printf("error %v", err)
+		return ""
+	}
+	return string(jsonData)
 }

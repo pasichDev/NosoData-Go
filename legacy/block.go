@@ -3,6 +3,7 @@ package legacy
 import (
 	"crypto/md5"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -20,28 +21,28 @@ const (
 )
 
 type LegacyBlock struct {
-	Number                      int64
-	HASH                        string
-	TimeStart                   int64
-	TimeEnd                     int64
-	TimeTotal                   int32
-	TimeLast20                  int32
-	TransactionsCount           int32
-	Difficulty                  int32
-	TargetHash                  PascalShortString // Capacity 32
-	Solution                    PascalShortString // Capacity 200
-	LastBlockHash               PascalShortString // Capacity 32
-	NextBlockDifficulty         int32
-	Miner                       PascalShortString // Capacity 40
-	Fee                         int64
-	Reward                      int64
-	Transactions                []LegacyTransaction
-	ProofOfStakeRewardCount     int32
-	ProofOfStakeRewardAmount    int64
-	ProofOfStakeRewardAddresses []PascalShortString
-	MasterNodeRewardCount       int32
-	MasterNodeRewardAmount      int64
-	MasterNodeRewardAddresses   []PascalShortString
+	Number                      int64               `json:"number"`
+	HASH                        string              `json:"hash"`
+	TimeStart                   int64               `json:"time-start"`
+	TimeEnd                     int64               `json:"time-end"`
+	TimeTotal                   int32               `json:"time-total"`
+	TimeLast20                  int32               `json:"time-last-20"`
+	TransactionsCount           int32               `json:"transaction-count"`
+	Difficulty                  int32               `json:"difficulty"`
+	TargetHash                  PascalShortString   `json:"target-hash"`     // Capacity 32
+	Solution                    PascalShortString   `json:"solution"`        // Capacity 200
+	LastBlockHash               PascalShortString   `json:"last-block-hash"` // Capacity 32
+	NextBlockDifficulty         int32               `json:"next-block-difficulty"`
+	Miner                       PascalShortString   `json:"miner"` // Capacity 40
+	Fee                         int64               `json:"fee"`
+	Reward                      int64               `json:"reward"`
+	Transactions                []LegacyTransaction `json:"transactions"`
+	ProofOfStakeRewardCount     int32               `json:"pos-reward-count"`
+	ProofOfStakeRewardAmount    int64               `json:"pos-reward-amount"`
+	ProofOfStakeRewardAddresses []PascalShortString `json:"pos-reward-addresses"`
+	MasterNodeRewardCount       int32               `json:"master-node-reward-count"`
+	MasterNodeRewardAmount      int64               `json:"master-node-reward-amount"`
+	MasterNodeRewardAddresses   []PascalShortString `json:"master-node-reward-addresses"`
 }
 
 // TODO: Implement NewLegacyBlock function/constructor
@@ -248,4 +249,13 @@ func (b *LegacyBlock) ReadFromStream(f *os.File) error {
 	}
 
 	return nil
+}
+
+func (b *LegacyBlock) AsJSON() string {
+	jsonData, err := json.MarshalIndent(b, "", "  ")
+	if err != nil {
+		fmt.Printf("error %v", err)
+		return ""
+	}
+	return string(jsonData)
 }

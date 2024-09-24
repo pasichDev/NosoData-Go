@@ -2,6 +2,7 @@ package legacy
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,11 +12,11 @@ import (
 )
 
 type LegacyPSO struct {
-	Block       int32
-	MNLockCount int32
-	PSOCount    int32
-	MNLocks     []LegacyMNLockItem
-	PSOS        []LegacyPSOItem
+	Block       int32              `json:"block"`
+	MNLockCount int32              `json:"mn-locks-count"`
+	PSOCount    int32              `json:"psos-count"`
+	MNLocks     []LegacyMNLockItem `json:"mn-locks"`
+	PSOS        []LegacyPSOItem    `json:"psos"`
 }
 
 func (p *LegacyPSO) ReadFromFile(f string) error {
@@ -81,9 +82,18 @@ func (p *LegacyPSO) ReadFromFile(f string) error {
 	return nil
 }
 
+func (p *LegacyPSO) AsJSON() string {
+	jsonData, err := json.MarshalIndent(p, "", "  ")
+	if err != nil {
+		fmt.Printf("error %v", err)
+		return ""
+	}
+	return string(jsonData)
+}
+
 type LegacyMNLockItem struct {
-	Address PascalShortString // Capacity 32 aligned makes it 35
-	Expire  int32
+	Address PascalShortString `json:"address"` // Capacity 32 aligned makes it 35
+	Expire  int32             `json:"expire"`
 }
 
 func (m *LegacyMNLockItem) ReadFromStream(f *os.File) error {
@@ -109,10 +119,10 @@ func (m *LegacyMNLockItem) ReadFromStream(f *os.File) error {
 }
 
 type LegacyPSOItem struct {
-	Mode    int32
-	Hash    string
-	Owner   string
-	Expire  int32
-	Members string
-	Params  string
+	Mode    int32  `json:"mode"`
+	Hash    string `json:"hash"`
+	Owner   string `json:"owner"`
+	Expire  int32  `json:"expire"`
+	Members string `json:"members"`
+	Params  string `json:"params"`
 }

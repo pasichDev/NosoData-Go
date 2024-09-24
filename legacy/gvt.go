@@ -2,6 +2,7 @@ package legacy
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,8 +12,8 @@ import (
 )
 
 type LegacyGVT struct {
-	EntryCount int64
-	Entries    []LegacyGVTEntry
+	EntryCount int64            `json:"entries-count"`
+	Entries    []LegacyGVTEntry `json:"entries"`
 }
 
 func (g *LegacyGVT) ReadFromFile(f string) error {
@@ -44,11 +45,20 @@ func (g *LegacyGVT) ReadFromFile(f string) error {
 	return nil
 }
 
+func (g *LegacyGVT) AsJSON() string {
+	jsonData, err := json.MarshalIndent(g, "", "  ")
+	if err != nil {
+		fmt.Printf("error %v", err)
+		return ""
+	}
+	return string(jsonData)
+}
+
 type LegacyGVTEntry struct {
-	Number  PascalShortString // Capacity 2
-	Owner   PascalShortString // Capacity 32
-	Hash    PascalShortString // Capacity 64
-	Control int32
+	Number  PascalShortString `json:"number"` // Capacity 2
+	Owner   PascalShortString `json:"owner"`  // Capacity 32
+	Hash    PascalShortString `json:"hash"`   // Capacity 64
+	Control int32             `json:"control"`
 }
 
 func (e *LegacyGVTEntry) ReadFromStream(f *os.File) error {
