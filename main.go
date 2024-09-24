@@ -32,6 +32,7 @@ func main() {
 	}
 
 	fmt.Println("Number:           ", block.Number)
+	fmt.Printf("HASH:              '%s'\n", block.HASH)
 	fmt.Println("Time Start:       ", time.Unix(block.TimeStart, 0))
 	fmt.Println("Time End:         ", time.Unix(block.TimeEnd, 0))
 	fmt.Println("Time Total:       ", block.TimeTotal, "seconds")

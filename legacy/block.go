@@ -1,11 +1,14 @@
 package legacy
 
 import (
+	"crypto/md5"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/Friends-Of-Noso/NosoData-Go/utils"
 )
@@ -18,6 +21,7 @@ const (
 
 type LegacyBlock struct {
 	Number                      int64
+	HASH                        string
 	TimeStart                   int64
 	TimeEnd                     int64
 	TimeTotal                   int32
@@ -59,96 +63,117 @@ func (b *LegacyBlock) ReadFromFile(f string) error {
 }
 
 // ReadFromFile reads the data from a stream
-func (b *LegacyBlock) ReadFromStream(r io.Reader) error {
+func (b *LegacyBlock) ReadFromStream(f *os.File) error {
 	// Check if the stream is nil
-	if r == nil {
+	if f == nil {
 		return errors.New("nil reader provided")
 	}
 
+	// Field HASH
+	// Create a new MD5 hash object
+	hash := md5.New()
+
+	// Copy the file's content into the hash
+	if _, err := io.Copy(hash, f); err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the final hash sum
+	hashInBytes := hash.Sum(nil)
+
+	// Convert the hash to a hexadecimal string and then to uppercase
+	b.HASH = strings.ToUpper(fmt.Sprintf("%x", hashInBytes))
+
+	// Seek back to the beginning of the file if you need to process it again
+	_, err := f.Seek(0, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Field Number
-	err := binary.Read(r, binary.LittleEndian, &b.Number)
+	err = binary.Read(f, binary.LittleEndian, &b.Number)
 	if err != nil {
 		return err
 	}
 
 	// Field TimeStart
-	err = binary.Read(r, binary.LittleEndian, &b.TimeStart)
+	err = binary.Read(f, binary.LittleEndian, &b.TimeStart)
 	if err != nil {
 		return err
 	}
 
 	// Field TimeEnd
-	err = binary.Read(r, binary.LittleEndian, &b.TimeEnd)
+	err = binary.Read(f, binary.LittleEndian, &b.TimeEnd)
 	if err != nil {
 		return err
 	}
 
 	// Field TimeTotal
-	err = binary.Read(r, binary.LittleEndian, &b.TimeTotal)
+	err = binary.Read(f, binary.LittleEndian, &b.TimeTotal)
 	if err != nil {
 		return err
 	}
 
 	// Field TimeLast
-	err = binary.Read(r, binary.LittleEndian, &b.TimeLast20)
+	err = binary.Read(f, binary.LittleEndian, &b.TimeLast20)
 	if err != nil {
 		return err
 	}
 
 	// Field TransactionsCount
-	err = binary.Read(r, binary.LittleEndian, &b.TransactionsCount)
+	err = binary.Read(f, binary.LittleEndian, &b.TransactionsCount)
 	if err != nil {
 		return err
 	}
 
 	// Field Difficulty
-	err = binary.Read(r, binary.LittleEndian, &b.Difficulty)
+	err = binary.Read(f, binary.LittleEndian, &b.Difficulty)
 	if err != nil {
 		return err
 	}
 
 	// Field TargetHash
 	b.TargetHash = *NewPascalShortString(32)
-	err = b.TargetHash.ReadFromStream(r)
+	err = b.TargetHash.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Solution
 	b.Solution = *NewPascalShortString(200)
-	err = b.Solution.ReadFromStream(r)
+	err = b.Solution.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field LastBlockHash
 	b.LastBlockHash = *NewPascalShortString(32)
-	err = b.LastBlockHash.ReadFromStream(r)
+	err = b.LastBlockHash.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field NextBlockDifficulty
-	err = binary.Read(r, binary.LittleEndian, &b.NextBlockDifficulty)
+	err = binary.Read(f, binary.LittleEndian, &b.NextBlockDifficulty)
 	if err != nil {
 		return err
 	}
 
 	// Field Miner
 	b.Miner = *NewPascalShortString(40)
-	err = b.Miner.ReadFromStream(r)
+	err = b.Miner.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Fee
-	err = binary.Read(r, binary.LittleEndian, &b.Fee)
+	err = binary.Read(f, binary.LittleEndian, &b.Fee)
 	if err != nil {
 		return err
 	}
 
 	// Field Reward
-	err = binary.Read(r, binary.LittleEndian, &b.Reward)
+	err = binary.Read(f, binary.LittleEndian, &b.Reward)
 	if err != nil {
 		return err
 	}
@@ -158,7 +183,7 @@ func (b *LegacyBlock) ReadFromStream(r io.Reader) error {
 		b.Transactions = make([]LegacyTransaction, b.TransactionsCount)
 		var n int32
 		for n = 0; n < b.TransactionsCount; n++ {
-			b.Transactions[n].ReadFromStream(r)
+			b.Transactions[n].ReadFromStream(f)
 		}
 	}
 
@@ -168,13 +193,13 @@ func (b *LegacyBlock) ReadFromStream(r io.Reader) error {
 	if b.Number > cBlockWithPoS {
 
 		// Field ProofOfStakeRewardAmount
-		err = binary.Read(r, binary.LittleEndian, &b.ProofOfStakeRewardAmount)
+		err = binary.Read(f, binary.LittleEndian, &b.ProofOfStakeRewardAmount)
 		if err != nil {
 			return err
 		}
 
 		// Field ProofOfStakeRewardCount
-		err := binary.Read(r, binary.LittleEndian, &b.ProofOfStakeRewardCount)
+		err := binary.Read(f, binary.LittleEndian, &b.ProofOfStakeRewardCount)
 		if err != nil {
 			return err
 		}
@@ -185,7 +210,7 @@ func (b *LegacyBlock) ReadFromStream(r io.Reader) error {
 			var n int32
 			for n = 0; n < b.ProofOfStakeRewardCount; n++ {
 				b.ProofOfStakeRewardAddresses[n] = *NewPascalShortString(32)
-				err := b.ProofOfStakeRewardAddresses[n].ReadFromStream(r)
+				err := b.ProofOfStakeRewardAddresses[n].ReadFromStream(f)
 				if err != nil {
 					return err
 				}
@@ -197,13 +222,13 @@ func (b *LegacyBlock) ReadFromStream(r io.Reader) error {
 	if b.Number > cBlockWithMNandPoS {
 
 		// Field MasterNodeRewardAmount
-		err = binary.Read(r, binary.LittleEndian, &b.MasterNodeRewardAmount)
+		err = binary.Read(f, binary.LittleEndian, &b.MasterNodeRewardAmount)
 		if err != nil {
 			return err
 		}
 
 		// Field MasterNodeRewardCount
-		err := binary.Read(r, binary.LittleEndian, &b.MasterNodeRewardCount)
+		err := binary.Read(f, binary.LittleEndian, &b.MasterNodeRewardCount)
 		if err != nil {
 			return err
 		}
@@ -214,7 +239,7 @@ func (b *LegacyBlock) ReadFromStream(r io.Reader) error {
 			var n int32
 			for n = 0; n < b.MasterNodeRewardCount; n++ {
 				b.MasterNodeRewardAddresses[n] = *NewPascalShortString(32)
-				err := b.MasterNodeRewardAddresses[n].ReadFromStream(r)
+				err := b.MasterNodeRewardAddresses[n].ReadFromStream(f)
 				if err != nil {
 					return err
 				}

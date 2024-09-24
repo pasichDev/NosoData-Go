@@ -51,40 +51,40 @@ type LegacySummaryAccount struct {
 	LastOperation int64
 }
 
-func (a *LegacySummaryAccount) ReadFromStream(r io.Reader) error {
+func (a *LegacySummaryAccount) ReadFromStream(f *os.File) error {
 	// Check if the stream is nil
-	if r == nil {
+	if f == nil {
 		return errors.New("nil reader provided")
 	}
 
 	// Field Hash
 	a.Hash = *NewPascalShortString(40)
-	err := a.Hash.ReadFromStream(r)
+	err := a.Hash.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Custom
 	a.Custom = *NewPascalShortString(40)
-	err = a.Custom.ReadFromStream(r)
+	err = a.Custom.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Balance
-	err = binary.Read(r, binary.LittleEndian, &a.Balance)
+	err = binary.Read(f, binary.LittleEndian, &a.Balance)
 	if err != nil {
 		return err
 	}
 
 	// Field Score
-	err = binary.Read(r, binary.LittleEndian, &a.Score)
+	err = binary.Read(f, binary.LittleEndian, &a.Score)
 	if err != nil {
 		return err
 	}
 
 	// Field LastOperation
-	err = binary.Read(r, binary.LittleEndian, &a.LastOperation)
+	err = binary.Read(f, binary.LittleEndian, &a.LastOperation)
 	if err != nil {
 		return err
 	}

@@ -51,35 +51,35 @@ type LegacyGVTEntry struct {
 	Control int32
 }
 
-func (e *LegacyGVTEntry) ReadFromStream(r io.Reader) error {
+func (e *LegacyGVTEntry) ReadFromStream(f *os.File) error {
 	// Check if the stream is nil
-	if r == nil {
+	if f == nil {
 		return errors.New("nil reader provided")
 	}
 
 	// Field Number
 	e.Number = *NewPascalShortString(2)
-	err := e.Number.ReadFromStream(r)
+	err := e.Number.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Owner
 	e.Owner = *NewPascalShortString(32)
-	err = e.Owner.ReadFromStream(r)
+	err = e.Owner.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Hash
 	e.Hash = *NewPascalShortString(64)
-	err = e.Hash.ReadFromStream(r)
+	err = e.Hash.ReadFromStream(f)
 	if err != nil {
 		return err
 	}
 
 	// Field Control
-	err = binary.Read(r, binary.LittleEndian, &e.Control)
+	err = binary.Read(f, binary.LittleEndian, &e.Control)
 	if err != nil {
 		return err
 	}
