@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/Friends-Of-Noso/NosoData-Go/legacy"
@@ -9,10 +10,12 @@ import (
 )
 
 const (
+	cTestDataFolder  = "testdata"
 	cBlockFilename   = "100000.blk"
 	cWalletFilename  = "wallet.pkw"
 	cSummaryFilename = "sumary.psk"
 	cGVTFilename     = "gvts.psk"
+	cPSOFilename     = "psos.dat"
 )
 
 var (
@@ -20,12 +23,12 @@ var (
 	wallet  legacy.LegacyWallet
 	summary legacy.LegacySummary
 	gvts    legacy.LegacyGVT
+	psos    legacy.LegacyPSO
 )
 
-func main() {
-
+func displayBlock() {
 	fmt.Printf("\n%s\n", "== Block ==")
-	err := block.ReadFromFile(cBlockFilename)
+	err := block.ReadFromFile(filepath.Join(cTestDataFolder, cBlockFilename))
 	if err != nil {
 		fmt.Printf("error %v", err)
 		return
@@ -90,10 +93,12 @@ func main() {
 	} else {
 		fmt.Println("No MN rewards")
 	}
+}
 
+func displayWallet() {
 	// Wallet
 	fmt.Printf("\n%s\n", "== Wallet ==")
-	err = wallet.ReadFromFile(cWalletFilename)
+	err := wallet.ReadFromFile(filepath.Join(cTestDataFolder, cWalletFilename))
 	if err != nil {
 		fmt.Println("error reading wallet:", err)
 	} else {
@@ -109,10 +114,12 @@ func main() {
 			fmt.Println("    Last Operation:", utils.ToNoso(a.LastOperation))
 		}
 	}
+}
 
+func displaySummary() {
 	// Summary
 	fmt.Printf("\n%s\n", "== Summary ==")
-	err = summary.ReadFromFile(cSummaryFilename)
+	err := summary.ReadFromFile(filepath.Join(cTestDataFolder, cSummaryFilename))
 	if err != nil {
 		fmt.Println("error reading summary:", err)
 	} else {
@@ -125,10 +132,12 @@ func main() {
 			fmt.Println("    Last Operation:", utils.ToNoso(a.LastOperation))
 		}
 	}
+}
 
+func displayGVT() {
 	// GVT
 	fmt.Printf("\n%s\n", "== GVT ==")
-	err = gvts.ReadFromFile(cGVTFilename)
+	err := gvts.ReadFromFile(filepath.Join(cTestDataFolder, cGVTFilename))
 	if err != nil {
 		fmt.Println("error reading GVT:", err)
 	} else {
@@ -140,4 +149,36 @@ func main() {
 			fmt.Println("    Control:", e.Control)
 		}
 	}
+}
+
+func displayPSO() {
+	// PSO
+	fmt.Printf("\n%s\n", "== PSO ==")
+	err := psos.ReadFromFile(filepath.Join(cTestDataFolder, cPSOFilename))
+	if err != nil {
+		fmt.Println("error reading PSO:", err)
+	} else {
+		fmt.Println("Block:", psos.Block)
+		fmt.Printf("  MN Locks(%d):\n", psos.MNLockCount)
+		for i, mli := range psos.MNLocks {
+			fmt.Println("  Position:", i)
+			fmt.Printf("      Address: '%s'\n", mli.Address.GetString())
+			fmt.Println("       Expire:", mli.Expire, "seconds")
+		}
+		fmt.Printf("  PSO Count(%d):\n", psos.PSOCount)
+	}
+}
+
+func main() {
+
+	displayPSO()
+
+	displayBlock()
+
+	displayWallet()
+
+	displaySummary()
+
+	displayGVT()
+
 }
